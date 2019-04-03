@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.apache.sling.hc.healthchecks;
+package org.apache.sling.hc.support.impl;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -26,8 +26,7 @@ import javax.jcr.Credentials;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 
-import org.apache.sling.hc.api.Result;
-import org.apache.sling.hc.support.impl.DefaultLoginsHealthCheck;
+import org.apache.felix.hc.api.Result;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Test;
 import org.mockito.Matchers;

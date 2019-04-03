@@ -25,53 +25,46 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.PropertyUnbounded;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.PropertiesUtil;
-import org.apache.sling.hc.api.HealthCheck;
-import org.apache.sling.hc.api.Result;
-import org.apache.sling.hc.util.FormattingResultLog;
+import org.apache.felix.hc.api.FormattingResultLog;
+import org.apache.felix.hc.api.HealthCheck;
+import org.apache.felix.hc.api.Result;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
+import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** {@link HealthCheck} that checks that Sling default logins fail.
- *  Used to verify that those logins are disabled on production systems */
-@Component(
-        name="org.apache.sling.hc.support.DefaultLoginsHealthCheck",
-        configurationFactory=true,
-        policy=ConfigurationPolicy.REQUIRE,
-        metatype=true,
-        label="Apache Sling Default Logins Health Check",
-        description="Expects default logins to fail, used to verify " +
-                "that they are disabled on production systems")
-@Properties({
-    @Property(name=HealthCheck.NAME,
-            label="Health Check Name", description="Name of this Health Check service."),
-    @Property(name=HealthCheck.TAGS, unbounded=PropertyUnbounded.ARRAY,
-             label="Health Check tags", description="List of tags for this Health Check service, used to select " +
-               "subsets of Health Check services for execution"),
-    @Property(name=HealthCheck.MBEAN_NAME,
-             label="MBean Name", description="Name of the MBean to create for this Health Check.")
-})
-@Service(value=HealthCheck.class)
+/** {@link HealthCheck} that runs an arbitrary script. */
+@Component(service = HealthCheck.class, name = "org.apache.sling.hc.support.DefaultLoginsHealthCheck", configurationPolicy = ConfigurationPolicy.REQUIRE)
+@Designate(ocd = DefaultLoginsHealthCheck.Config.class, factory = true)
 public class DefaultLoginsHealthCheck implements HealthCheck {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultLoginsHealthCheck.class);
 
-    @Property(unbounded=PropertyUnbounded.ARRAY,
-            label="Login credentials",
-            description="Which credentials to check. Each one is in the format \"user:password\" " +
-                "like \"admin:admin\" for example. Do *not* put any confidential passwords here, the goal " +
-                "is just to check that the default/demo logins, which passwords are known anyway, are disabled.")
-    private static final String PROP_LOGINS = "logins";
+    public static final String HC_LABEL = "Health Check: Default Logins";
+
+    @ObjectClassDefinition(name = HC_LABEL, description = "Expects default logins to fail, used to verify that they are disabled on production systems")
+    @interface Config {
+
+        @AttributeDefinition(name = "Name", description = "Name of this health check.")
+        String hc_name() default "Default Logins Check";
+
+        @AttributeDefinition(name = "Tags", description = "List of tags for this health check, used to select subsets of health checks for execution e.g. by a composite health check.")
+        String[] hc_tags() default {};
+
+        @AttributeDefinition(name = "Default Logins", description = "Which credentials to check. Each one is in the format"
+                + " \"user:password\" like \"admin:admin\" for example. Do *not* put any confidential passwords here, the goal "
+                + "is just to check that the default/demo logins, which passwords are known anyway, are disabled.")
+        String[] logins() default "logins";
+
+        @AttributeDefinition
+        String webconsole_configurationFactory_nameHint() default "Default Logins Check: {logins}";
+    }
 
     private List<String> logins;
 
@@ -79,20 +72,20 @@ public class DefaultLoginsHealthCheck implements HealthCheck {
     private SlingRepository repository;
 
     @Activate
-    public void activate(ComponentContext ctx) {
-        logins = Arrays.asList(PropertiesUtil.toStringArray(ctx.getProperties().get(PROP_LOGINS), new String[] {}));
-        log.info("Activated, logins={}", logins);
+    protected void activate(Config config) {
+        this.logins = Arrays.asList(config.logins());
+        LOG.info("Activated, logins={}", logins);
     }
 
     @Override
     public Result execute() {
-        final FormattingResultLog resultLog = new FormattingResultLog();
-        int checked=0;
-        int failures=0;
+        FormattingResultLog resultLog = new FormattingResultLog();
+        int checked = 0;
+        int failures = 0;
 
-        for(String login : logins) {
-            final String [] parts = login.split(":");
-            if(parts.length != 2) {
+        for (String login : logins) {
+            final String[] parts = login.split(":");
+            if (parts.length != 2) {
                 resultLog.warn("Expected login in the form username:password, got [{}]", login);
                 continue;
             }
@@ -103,28 +96,30 @@ public class DefaultLoginsHealthCheck implements HealthCheck {
             Session s = null;
             try {
                 s = repository.login(creds);
-                if(s != null) {
+                if (s != null) {
                     failures++;
                     resultLog.warn("Login as [{}] succeeded, was expecting it to fail", username);
                 } else {
                     resultLog.debug("Login as [{}] didn't throw an Exception but returned null Session", username);
                 }
-            } catch(RepositoryException re) {
+            } catch (RepositoryException re) {
                 resultLog.debug("Login as [{}] failed, as expected", username);
             } finally {
-                if(s != null) {
+                if (s != null) {
                     s.logout();
                 }
             }
         }
 
-        if(checked==0) {
+        if (checked == 0) {
             resultLog.warn("Did not check any logins, configured logins={}", logins);
-        } else if(failures != 0){
+        } else if (failures != 0) {
             resultLog.warn("Checked {} logins, {} failures", checked, failures);
         } else {
             resultLog.debug("Checked {} logins, all successful", checked, failures);
         }
+
         return new Result(resultLog);
     }
+
 }
