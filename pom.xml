@@ -32,11 +32,11 @@
     <packaging>bundle</packaging>
     <version>1.0.7-SNAPSHOT</version>
 
-    <name>Apache Sling Health Check Support Components</name>
+    <name>Apache Sling Health Check Support Bundle</name>
     <inceptionYear>2013</inceptionYear>
     
     <description>
-        Default Sling Health Check Support Components
+        Additional generic Health Checks in Sling.
     </description>
 
     <scm>
@@ -44,7 +44,7 @@
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-hc-support.git</developerConnection>
         <url>https://gitbox.apache.org/repos/asf?p=sling-org-apache-sling-hc-support.git</url>
       <tag>HEAD</tag>
-  </scm>
+    </scm>
 
     <build>
         <plugins>
@@ -52,6 +52,11 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Conditional-Package>org.apache.felix.hc.generalchecks.util</Conditional-Package>
+                    </instructions>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -73,7 +78,7 @@
             <artifactId>osgi.annotation</artifactId>
             <version>6.0.1</version>
             <scope>provided</scope>
-        </dependency>    
+        </dependency>
     
         <dependency>
             <groupId>org.apache.felix</groupId>
