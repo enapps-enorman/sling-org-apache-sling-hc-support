@@ -10,4 +10,12 @@ Additional general purpose health checks. Module specific health checks should b
 
 ## DEPRECATED
 
-Note that this functionality has **moved to the [org.apache.felix.healthcheck.generalchecks](https://github.com/apache/felix-dev/tree/master/healthcheck/generalchecks) and [org.apache.sling.auth.core](https://github.com/apache/sling-org-apache-sling-auth-core) modules**
+Note that this functionality has moved to the [org.apache.felix.healthcheck.generalchecks](https://github.com/apache/felix-dev/tree/master/healthcheck/generalchecks) and [org.apache.sling.auth.core](https://github.com/apache/sling-org-apache-sling-auth-core) modules
+
+#### Migration to non-deprecated alternatives
+Any configuration that was registered using the old PID should be moved to the new PID as below:
+
+Deprecated Factory PID | New Factory PID 
+--- | ---
+org.apache.sling.hc.support.DefaultLoginsHealthCheck | org.apache.sling.auth.core.DefaultLoginsHealthCheck
+org.apache.sling.hc.support.ScriptedHealthCheck | org.apache.felix.hc.generalchecks.ScriptedHealthCheck
