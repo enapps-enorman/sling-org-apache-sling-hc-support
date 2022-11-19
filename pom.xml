@@ -29,7 +29,7 @@
     </parent>
 
     <artifactId>org.apache.sling.hc.support</artifactId>
-    <version>1.0.10</version>
+    <version>1.0.11-SNAPSHOT</version>
 
     <name>Apache Sling Health Check Support Bundle</name>
     <inceptionYear>2013</inceptionYear>
@@ -40,14 +40,14 @@
 
     <properties>
         <org.ops4j.pax.exam.version>4.13.3</org.ops4j.pax.exam.version>
-        <project.build.outputTimestamp>2022-11-19T22:46:44Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2022-11-19T22:47:28Z</project.build.outputTimestamp>
     </properties>
 
     <scm>
         <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-hc-support.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-hc-support.git</developerConnection>
         <url>https://gitbox.apache.org/repos/asf?p=sling-org-apache-sling-hc-support.git</url>
-      <tag>org.apache.sling.hc.support-1.0.10</tag>
+      <tag>HEAD</tag>
     </scm>
 
     <build>
